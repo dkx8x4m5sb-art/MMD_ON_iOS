@@ -1,1 +1,55 @@
+name: MMDStudio Build
 
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "*.zip"
+
+jobs:
+  build:
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract project
+        run: |
+          set -euo pipefail
+
+          ZIP_FILE=$(find . -maxdepth 1 -name "*.zip" | head -n 1)
+
+          if [ -z "$ZIP_FILE" ]; then
+            echo "No project ZIP found"
+            exit 1
+          fi
+
+          mkdir -p extracted
+          unzip -q "$ZIP_FILE" -d extracted
+
+          PROJECT_DIR=$(find extracted -name project.yml -print -quit | xargs dirname)
+
+          if [ -z "$PROJECT_DIR" ]; then
+            echo "project.yml not found"
+            exit 1
+          fi
+
+          cp -R "$PROJECT_DIR"/. .
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build IPA
+        run: |
+          xcodebuild \
+            -project MMDStudio.xcodeproj \
+            -scheme MMDStudio \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            build
