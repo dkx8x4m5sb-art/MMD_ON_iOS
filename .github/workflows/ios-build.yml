@@ -58,22 +58,33 @@ jobs:
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             build
-
+            
       - name: Package IPA
+        shell: bash
         run: |
           set -euo pipefail
 
-          APP_PATH="build/Build/Products/Release-iphoneos/MMDStudio.app"
+          echo "Searching for built app..."
 
-          if [ ! -d "$APP_PATH" ]; then
-            echo "MMDStudio.app not found"
+          APP_PATH=$(find build -type d -name "*.app" -print -quit)
+
+          if [ -z "$APP_PATH" ]; then
+            echo "ERROR: No .app bundle found."
+            echo "Build directory contents:"
+            find build -maxdepth 6 -print || true
             exit 1
           fi
+
+          echo "Found app: $APP_PATH"
 
           mkdir -p Payload
           cp -R "$APP_PATH" Payload/
 
           zip -qry MMDStudio.ipa Payload
+
+          echo "IPA generated:"
+          ls -lh MMDStudio.ipa
+
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
