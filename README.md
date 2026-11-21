@@ -74,4 +74,4 @@ xcodebuild -project MMDStudio.xcodeproj \
 - 模型名称仍读取 PMX 文件内的原始名称（`nameJP` 优先），不做翻译
 - 代码标识符、日志级别、Metal 着色器函数名保持原样，避免影响构建
 
-英文说明见 [README.md](README.md)。
+英文说明见 [README.EN.md](README.EN.md)。
